@@ -8,6 +8,7 @@ import com.fooddelivery.users.dto.UserResponse;
 
 import java.time.Instant;
 
+// todo переделать нормально
 public class UserMapper {
 
     public static UserHistoryResponse toHistoryResponse(Long id, String name, String email, Role role, UserStatus status, Instant recordedAt) {

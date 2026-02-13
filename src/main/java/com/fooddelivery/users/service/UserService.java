@@ -6,6 +6,7 @@ import com.fooddelivery.users.domain.UserProfileHistory;
 import com.fooddelivery.users.domain.UserStatus;
 import com.fooddelivery.users.repository.UserProfileHistoryRepository;
 import com.fooddelivery.users.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,14 +15,13 @@ import java.util.List;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
+// todo доработать
 public class UserService {
+
     private final UserRepository userRepository;
     private final UserProfileHistoryRepository historyRepository;
 
-    public UserService(UserRepository userRepository, UserProfileHistoryRepository historyRepository) {
-        this.userRepository = userRepository;
-        this.historyRepository = historyRepository;
-    }
 
     public User createUser(User user) {
         User created = userRepository.save(user);
@@ -41,10 +41,12 @@ public class UserService {
     }
 
     public User updateUser(Long id, User updatedData) {
+        // todo переделать
         User existing = getById(id);
         historyRepository.save(UserProfileHistory.from(existing));
         existing.setName(updatedData.getName());
         existing.setEmail(updatedData.getEmail());
+        // todo if подумать
         if (updatedData.getRole() != null) {
             existing.setRole(updatedData.getRole());
         }

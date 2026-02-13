@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 import static com.fooddelivery.users.Mapper.UserMapper.toHistoryResponse;
 import static com.fooddelivery.users.Mapper.UserMapper.toResponse;
 
+
+// todo так же оптимизировать как в ресторане
 @RestController
 @RequestMapping("/users")
 public class UserController {
