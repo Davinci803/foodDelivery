@@ -8,13 +8,12 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface RestaurantRepository extends JpaRepository<Restaurant, Long> {
-    // todo Добавить порядок по рейтингу
-    List<Restaurant> findByClosedFalse();
+    List<Restaurant> findByClosedFalseOrderByRatingDesc();
 
-    List<Restaurant> findByClosedFalseAndCuisine(CuisineType cuisine);
+    List<Restaurant> findByClosedFalseAndCuisineOrderByRatingDesc(CuisineType cuisine);
 
-    List<Restaurant> findByClosedFalseAndRatingGreaterThanEqual(BigDecimal rating);
+    List<Restaurant> findByClosedFalseAndRatingGreaterThanEqualOrderByRatingDesc(BigDecimal rating);
 
-    List<Restaurant> findByClosedFalseAndCuisineAndRatingGreaterThanEqual(CuisineType cuisine, BigDecimal rating);
+    List<Restaurant> findByClosedFalseAndCuisineAndRatingGreaterThanEqualOrderByRatingDesc(CuisineType cuisine, BigDecimal rating);
 }
 

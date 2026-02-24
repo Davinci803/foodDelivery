@@ -1,9 +1,12 @@
 package com.fooddelivery.users.service;
 
+import com.fooddelivery.common.exception.EntityNotFoundException;
 import com.fooddelivery.users.domain.Role;
 import com.fooddelivery.users.domain.User;
 import com.fooddelivery.users.domain.UserProfileHistory;
 import com.fooddelivery.users.domain.UserStatus;
+import com.fooddelivery.users.dto.UserUpdateRequest;
+import com.fooddelivery.users.mapper.UserMapper;
 import com.fooddelivery.users.repository.UserProfileHistoryRepository;
 import com.fooddelivery.users.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,12 +19,11 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
-// todo доработать
 public class UserService {
 
     private final UserRepository userRepository;
     private final UserProfileHistoryRepository historyRepository;
-
+    private final UserMapper userMapper;
 
     public User createUser(User user) {
         User created = userRepository.save(user);
@@ -32,7 +34,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public User getById(Long id){
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User", id));
     }
 
     @Transactional(readOnly = true)
@@ -40,20 +42,14 @@ public class UserService {
         return userRepository.findByRole(role);
     }
 
-    public User updateUser(Long id, User updatedData) {
-        // todo переделать
-        User existing = getById(id);
-        historyRepository.save(UserProfileHistory.from(existing));
-        existing.setName(updatedData.getName());
-        existing.setEmail(updatedData.getEmail());
-        // todo if подумать
-        if (updatedData.getRole() != null) {
-            existing.setRole(updatedData.getRole());
-        }
-        if (updatedData.getStatus() != null) {
-            existing.setStatus(updatedData.getStatus());
-        }
-        return userRepository.save(existing);
+    public User updateUser(Long id, UserUpdateRequest request) {
+        return userRepository.findById(id)
+                .map(existing -> {
+                    historyRepository.save(UserProfileHistory.from(existing));
+                    userMapper.updateEntity(request, existing);
+                    return userRepository.save(existing);
+                })
+                .orElseThrow(() -> new EntityNotFoundException("User", id));
     }
 
     public void deactivateUser(Long id) {
@@ -62,7 +58,6 @@ public class UserService {
         userRepository.save(existing);
     }
 
-    
     @Transactional(readOnly = true)
     public UserProfileHistory getStateAt(Long userId, Instant at) {
         return historyRepository.findTop1ByUserIdAndRecordedAtLessThanEqualOrderByRecordedAtDesc(userId, at)

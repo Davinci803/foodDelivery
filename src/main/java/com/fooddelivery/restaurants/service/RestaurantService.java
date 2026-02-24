@@ -1,7 +1,11 @@
 package com.fooddelivery.restaurants.service;
 
+import com.fooddelivery.common.exception.EntityNotFoundException;
+import com.fooddelivery.common.exception.RestaurantAlreadyClosedException;
 import com.fooddelivery.restaurants.domain.CuisineType;
 import com.fooddelivery.restaurants.domain.Restaurant;
+import com.fooddelivery.restaurants.dto.RestaurantUpdateRequest;
+import com.fooddelivery.restaurants.mapper.RestaurantMapper;
 import com.fooddelivery.restaurants.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,56 +16,50 @@ import java.util.List;
 
 @Service
 @Transactional
-// todo везде так сделать
 @RequiredArgsConstructor
 public class RestaurantService {
 
     private final RestaurantRepository restaurantRepository;
+    private final RestaurantMapper restaurantMapper;
 
     public Restaurant create(Restaurant restaurant) {
         return restaurantRepository.save(restaurant);
     }
 
-    // todo подумать о транзакции
     @Transactional(readOnly = true)
     public Restaurant getById(Long id) {
-        // todo мб делать контрллер эдвайс исключение свою прописать и ловаить в контроллерах
         return restaurantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Restaurant not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant", id));
     }
 
     @Transactional(readOnly = true)
     public List<Restaurant> find(CuisineType cuisine, BigDecimal minRating) {
-        // todo Над if подумать. по сервисам разбить, через стримы
         if (cuisine != null && minRating != null) {
-            return restaurantRepository.findByClosedFalseAndCuisineAndRatingGreaterThanEqual(cuisine, minRating);
+            return restaurantRepository.findByClosedFalseAndCuisineAndRatingGreaterThanEqualOrderByRatingDesc(cuisine, minRating);
         } else if (cuisine != null) {
-            return restaurantRepository.findByClosedFalseAndCuisine(cuisine);
+            return restaurantRepository.findByClosedFalseAndCuisineOrderByRatingDesc(cuisine);
         } else if (minRating != null) {
-            return restaurantRepository.findByClosedFalseAndRatingGreaterThanEqual(minRating);
+            return restaurantRepository.findByClosedFalseAndRatingGreaterThanEqualOrderByRatingDesc(minRating);
         } else {
-            return restaurantRepository.findByClosedFalse();
+            return restaurantRepository.findByClosedFalseOrderByRatingDesc();
         }
     }
 
-    // todo optinal, обернуть исключение , в эдвайсере обработать, MapStruct
-    public Restaurant update(Long id, Restaurant updatedData) {
-        Restaurant existing = getById(id);
-        // todo Над if подумать
-        if (updatedData.getName() != null) {
-            existing.setName(updatedData.getName());
-        }
-        if (updatedData.getCuisine() != null) {
-            existing.setCuisine(updatedData.getCuisine());
-        }
-        // todo ошибка вылететь может, свою написать
-        return restaurantRepository.save(existing);
+    public Restaurant update(Long id, RestaurantUpdateRequest request) {
+        return restaurantRepository.findById(id)
+                .map(existing -> {
+                    restaurantMapper.updateEntity(request, existing);
+                    return restaurantRepository.save(existing);
+                })
+                .orElseThrow(() -> new EntityNotFoundException("Restaurant", id));
     }
 
 
     public void close(Long id) {
-        // todo проверка что рестик закрыт, опять мб свое исключние напить и тд
         Restaurant existing = getById(id);
+        if (existing.isClosed()) {
+            throw new RestaurantAlreadyClosedException(id);
+        }
         existing.setClosed(true);
         restaurantRepository.save(existing);
     }
