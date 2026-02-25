@@ -1,8 +1,8 @@
-package com.fooddelivery.restaurants.controller;
+package com.fooddelivery.menu.controller;
 
-import com.fooddelivery.restaurants.dto.MenuItemCreateRequest;
-import com.fooddelivery.restaurants.dto.MenuItemResponse;
-import com.fooddelivery.restaurants.service.MenuService;
+import com.fooddelivery.menu.dto.MenuItemCreateRequest;
+import com.fooddelivery.menu.dto.MenuItemResponse;
+import com.fooddelivery.menu.service.MenuService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

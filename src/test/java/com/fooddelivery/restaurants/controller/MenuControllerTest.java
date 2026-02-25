@@ -2,12 +2,15 @@ package com.fooddelivery.restaurants.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fooddelivery.restaurants.domain.CuisineType;
-import com.fooddelivery.restaurants.domain.MenuItem;
+import com.fooddelivery.menu.domain.MenuItem;
+import com.fooddelivery.menu.domain.MenuItemOption;
 import com.fooddelivery.restaurants.domain.Restaurant;
-import com.fooddelivery.restaurants.dto.MenuItemCreateRequest;
-import com.fooddelivery.restaurants.dto.MenuItemOptionCreateRequest;
-import com.fooddelivery.restaurants.dto.MenuItemUpdateRequest;
-import com.fooddelivery.restaurants.repository.MenuItemRepository;
+import com.fooddelivery.menu.dto.MenuItemCreateRequest;
+import com.fooddelivery.menu.dto.MenuItemOptionCreateRequest;
+import com.fooddelivery.menu.dto.MenuItemOptionUpdateRequest;
+import com.fooddelivery.menu.dto.MenuItemUpdateRequest;
+import com.fooddelivery.menu.repository.MenuItemOptionRepository;
+import com.fooddelivery.menu.repository.MenuItemRepository;
 import com.fooddelivery.restaurants.repository.RestaurantRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,6 +47,9 @@ class MenuControllerTest {
 
     @Autowired
     private MenuItemRepository menuItemRepository;
+
+    @Autowired
+    private MenuItemOptionRepository menuItemOptionRepository;
 
     private Restaurant createRestaurant() {
         Restaurant restaurant = new Restaurant();
@@ -152,6 +158,57 @@ class MenuControllerTest {
                 .andExpect(status().isNoContent());
 
         assertThat(menuItemRepository.count()).isZero();
+    }
+
+    @Test
+    @DisplayName("PUT /menu/options/{optionId} обновляет только выбранную опцию блюда")
+    void updateSingleOption() throws Exception {
+        Restaurant restaurant = createRestaurant();
+
+        MenuItemOptionCreateRequest opt1 = new MenuItemOptionCreateRequest();
+        opt1.setName("SMALL");
+        opt1.setPrice(new BigDecimal("10.00"));
+        opt1.setPreparationTimeMinutes(15);
+
+        MenuItemOptionCreateRequest opt2 = new MenuItemOptionCreateRequest();
+        opt2.setName("MEDIUM");
+        opt2.setPrice(new BigDecimal("12.00"));
+        opt2.setPreparationTimeMinutes(18);
+
+        MenuItemCreateRequest create = new MenuItemCreateRequest();
+        create.setName("Pasta");
+        create.setDescription("Bolognese");
+        create.setOptions(List.of(opt1, opt2));
+
+        mockMvc.perform(post("/restaurants/{restaurantId}/menu", restaurant.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(create)))
+                .andExpect(status().isCreated());
+
+        MenuItem item = menuItemRepository.findAll().getFirst();
+        List<MenuItemOption> options = item.getOptions();
+        assertThat(options).hasSize(2);
+        MenuItemOption medium = options.stream()
+                .filter(o -> "MEDIUM".equals(o.getName()))
+                .findFirst()
+                .orElseThrow();
+
+        MenuItemOptionUpdateRequest updateReq = new MenuItemOptionUpdateRequest();
+        updateReq.setName("MEDIUM_PLUS");
+        updateReq.setPrice(new BigDecimal("13.50"));
+        updateReq.setPreparationTimeMinutes(19);
+
+        mockMvc.perform(put("/menu/options/{optionId}", medium.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("MEDIUM_PLUS"))
+                .andExpect(jsonPath("$.price").value(13.50))
+                .andExpect(jsonPath("$.preparationTimeMinutes").value(19));
+
+        MenuItem reloaded = menuItemRepository.findById(item.getId()).orElseThrow();
+        assertThat(reloaded.getOptions()).hasSize(2);
+        assertThat(reloaded.getOptions().stream().anyMatch(o -> "SMALL".equals(o.getName()))).isTrue();
     }
 }
 

@@ -1,13 +1,17 @@
-package com.fooddelivery.restaurants.service;
+package com.fooddelivery.menu.service;
 
 import com.fooddelivery.common.exception.EntityNotFoundException;
-import com.fooddelivery.restaurants.domain.MenuItem;
+import com.fooddelivery.menu.domain.MenuItem;
+import com.fooddelivery.menu.domain.MenuItemOption;
+import com.fooddelivery.menu.dto.MenuItemCreateRequest;
+import com.fooddelivery.menu.dto.MenuItemOptionResponse;
+import com.fooddelivery.menu.dto.MenuItemOptionUpdateRequest;
+import com.fooddelivery.menu.dto.MenuItemResponse;
+import com.fooddelivery.menu.dto.MenuItemUpdateRequest;
+import com.fooddelivery.menu.mapper.MenuMapper;
+import com.fooddelivery.menu.repository.MenuItemOptionRepository;
+import com.fooddelivery.menu.repository.MenuItemRepository;
 import com.fooddelivery.restaurants.domain.Restaurant;
-import com.fooddelivery.restaurants.dto.MenuItemCreateRequest;
-import com.fooddelivery.restaurants.dto.MenuItemResponse;
-import com.fooddelivery.restaurants.dto.MenuItemUpdateRequest;
-import com.fooddelivery.restaurants.mapper.MenuMapper;
-import com.fooddelivery.restaurants.repository.MenuItemRepository;
 import com.fooddelivery.restaurants.repository.RestaurantRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +25,7 @@ import java.util.List;
 public class MenuService {
 
     private final MenuItemRepository menuItemRepository;
+    private final MenuItemOptionRepository menuItemOptionRepository;
     private final RestaurantRepository restaurantRepository;
     private final MenuMapper menuMapper;
 
@@ -65,6 +70,14 @@ public class MenuService {
         item.setAvailable(available);
         MenuItem saved = menuItemRepository.save(item);
         return menuMapper.toResponse(saved);
+    }
+
+    public MenuItemOptionResponse updateOption(Long optionId, MenuItemOptionUpdateRequest request) {
+        MenuItemOption option = menuItemOptionRepository.findById(optionId)
+                .orElseThrow(() -> new EntityNotFoundException("MenuItemOption", optionId));
+        menuMapper.updateOption(request, option);
+        MenuItemOption saved = menuItemOptionRepository.save(option);
+        return menuMapper.toOptionResponse(saved);
     }
 }
 

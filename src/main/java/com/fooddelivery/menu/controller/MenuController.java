@@ -1,8 +1,10 @@
-package com.fooddelivery.restaurants.controller;
+package com.fooddelivery.menu.controller;
 
-import com.fooddelivery.restaurants.dto.MenuItemResponse;
-import com.fooddelivery.restaurants.dto.MenuItemUpdateRequest;
-import com.fooddelivery.restaurants.service.MenuService;
+import com.fooddelivery.menu.dto.MenuItemOptionResponse;
+import com.fooddelivery.menu.dto.MenuItemOptionUpdateRequest;
+import com.fooddelivery.menu.dto.MenuItemResponse;
+import com.fooddelivery.menu.dto.MenuItemUpdateRequest;
+import com.fooddelivery.menu.service.MenuService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,15 @@ public class MenuController {
     public ResponseEntity<MenuItemResponse> changeAvailability(@PathVariable Long id,
                                                                @RequestParam boolean available) {
         MenuItemResponse response = menuService.changeAvailability(id, available);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/options/{optionId}")
+    public ResponseEntity<MenuItemOptionResponse> updateOption(
+            @PathVariable Long optionId,
+            @Valid @RequestBody MenuItemOptionUpdateRequest request
+    ) {
+        MenuItemOptionResponse response = menuService.updateOption(optionId, request);
         return ResponseEntity.ok(response);
     }
 }

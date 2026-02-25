@@ -1,12 +1,13 @@
-package com.fooddelivery.restaurants.mapper;
+package com.fooddelivery.menu.mapper;
 
-import com.fooddelivery.restaurants.domain.MenuItem;
-import com.fooddelivery.restaurants.domain.MenuItemOption;
-import com.fooddelivery.restaurants.dto.MenuItemCreateRequest;
-import com.fooddelivery.restaurants.dto.MenuItemOptionCreateRequest;
-import com.fooddelivery.restaurants.dto.MenuItemOptionResponse;
-import com.fooddelivery.restaurants.dto.MenuItemResponse;
-import com.fooddelivery.restaurants.dto.MenuItemUpdateRequest;
+import com.fooddelivery.menu.domain.MenuItem;
+import com.fooddelivery.menu.domain.MenuItemOption;
+import com.fooddelivery.menu.dto.MenuItemCreateRequest;
+import com.fooddelivery.menu.dto.MenuItemOptionCreateRequest;
+import com.fooddelivery.menu.dto.MenuItemOptionResponse;
+import com.fooddelivery.menu.dto.MenuItemOptionUpdateRequest;
+import com.fooddelivery.menu.dto.MenuItemResponse;
+import com.fooddelivery.menu.dto.MenuItemUpdateRequest;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -39,6 +40,10 @@ public interface MenuMapper {
     @Mapping(target = "options", ignore = true)
     void updateEntity(MenuItemUpdateRequest request, @MappingTarget MenuItem item);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "menuItem", ignore = true)
+    void updateOption(MenuItemOptionUpdateRequest request, @MappingTarget MenuItemOption option);
+
     @AfterMapping
     default void fillOptions(MenuItemCreateRequest request, @MappingTarget MenuItem item) {
         if (request.getOptions() == null || request.getOptions().isEmpty()) {
@@ -69,4 +74,5 @@ public interface MenuMapper {
         item.setOptions(options);
     }
 }
+
 

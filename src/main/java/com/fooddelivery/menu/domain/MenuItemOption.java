@@ -1,4 +1,4 @@
-package com.fooddelivery.restaurants.domain;
+package com.fooddelivery.menu.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;

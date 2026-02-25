@@ -1,4 +1,4 @@
-package com.fooddelivery.restaurants.dto;
+package com.fooddelivery.menu.dto;
 
 import jakarta.validation.Valid;
 import lombok.Getter;
